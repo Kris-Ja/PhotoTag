@@ -29,13 +29,17 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
+        working-directory: terraform
         run: terraform init
 
       - name: Terraform Format
+        working-directory: terraform
         run: terraform fmt -check -recursive
         
       - name: Terraform Validate
+        working-directory: terraform
         run: terraform validate
 
       - name: Terraform Plan
+        working-directory: terraform
         run: terraform plan
