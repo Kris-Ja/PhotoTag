@@ -1,7 +1,3 @@
-resource "random_id" "acr" {
-  byte_length = 14
-}
-
 resource "azurerm_container_registry" "acr" {
   name                = lower("phototagacr${random_id.acr.hex}")
   resource_group_name = var.resource_group_name

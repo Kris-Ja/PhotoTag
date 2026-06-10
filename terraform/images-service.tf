@@ -1,5 +1,5 @@
 resource "azurerm_function_app_flex_consumption" "images_service" {
-  name                = "images-service"
+  name                = lower("images-service${random_id.random.hex}")
   resource_group_name = azurerm_resource_group.phototag.name
   location            = azurerm_resource_group.phototag.location
   service_plan_id     = azurerm_service_plan.service_plan.id
