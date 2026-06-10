@@ -1,0 +1,49 @@
+name: Deploy images-service
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Terraform CD"]
+    types:
+      - completed
+
+env:
+  AZURE_FUNCTIONAPP_NAME: 'images-service0f54dfec294a4f6e'
+  AZURE_FUNCTIONAPP_PROJECT_PATH: 'images-service'
+  PYTHON_VERSION: '3.13'
+
+jobs:
+  build_and_deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.AZURE_FUNCTIONAPP_PROJECT_PATH }}
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+
+      - name: 'Set up Python version: ${{ env.PYTHON_VERSION }}'
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 'Install project dependencies'
+        run: pip install -r requirements.txt --target ".python_packages/lib/site-packages"
+
+      - name: 'Log in to Azure with AZ CLI'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Run the Azure Functions action'
+        uses: azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: .
