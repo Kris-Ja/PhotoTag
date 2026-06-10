@@ -13,5 +13,11 @@ resource "azurerm_function_app_flex_consumption" "images_service" {
   maximum_instance_count      = 5
   instance_memory_in_mb       = 512
 
-  site_config {}
+  site_config {
+  }
+
+  app_settings = {
+    ENV_PHOTOS_CONNSTR        = azurerm_storage_account.images.primary_connection_string
+    ENV_PHOTOS_CONTAINER_NAME = azurerm_storage_container.images.name
+  }
 }
