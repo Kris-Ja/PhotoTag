@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "images" {
-  name                     = "images"
+  name                     = lower("images${random_id.random.hex}")
   resource_group_name      = azurerm_resource_group.phototag.name
   location                 = azurerm_resource_group.phototag.location
   account_tier             = "Standard"
