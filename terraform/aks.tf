@@ -1,8 +1,8 @@
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                = "phototag-aks"
+  name                = var.cluster_name
   location            = azurerm_resource_group.phototag.location
   resource_group_name = azurerm_resource_group.phototag.name
-  dns_prefix          = "phototag-aks-dns"
+  dns_prefix          = "${var.cluster_name}-dns"
 
   default_node_pool {
     name       = "default"
@@ -17,14 +17,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = {
     Environment = "Production"
   }
-}
-
-resource "azurerm_role_assignment" "acr_pull" {
-  scope                = azurerm_container_registry.acr.id
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
-
-  depends_on = [azurerm_container_registry.acr]
 }
 
 output "client_certificate" {
