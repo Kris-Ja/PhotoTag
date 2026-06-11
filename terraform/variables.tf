@@ -5,7 +5,3 @@ variable "resource_group_name" {
 variable "location" {
   default = "polandcentral"
 }
-
-variable "cluster_name" {
-  default = "phototag-aks"
-}
