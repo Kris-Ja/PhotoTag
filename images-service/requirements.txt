@@ -1,0 +1,4 @@
+azure-storage-blob
+azure-functions
+azure-data-tables
+Pillow
