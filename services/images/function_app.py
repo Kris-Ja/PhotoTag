@@ -3,6 +3,7 @@ import logging
 import os
 import uuid
 
+
 from io import BytesIO
 from PIL import Image
 from azure.storage.blob import BlobServiceClient, ContentSettings
@@ -22,23 +23,22 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             connection_string = os.environ['ENV_PHOTOS_CONNSTR']
             container_name = os.environ['ENV_PHOTOS_CONTAINER_NAME']
             sb_connection_string = os.environ['ENV_SERVICE_BUS_CONNSTR']
-            sb_topic_name = os.environ['ENV_SERVICE_BUS_TOPIC_NAME'] 
+            sb_topic_name = os.environ['ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME'] 
 
             try:
                 blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+                container_client = blob_service_client.get_container_client(container_name)
             except Exception as e:
-                logging.error(f"Error: {e}")
+                logging.error(f"Connection Error: {e}")
                 return func.HttpResponse(
-                    "Error: Unable to connect to Azure Storage", status_code=500
+                    "Error: Unable to connect to Azure Services", status_code=500
                 )
             
             idx = str(uuid.uuid4())
-            safe_filename = f"{idx}.jpg"
+            safe_filename = f"images/{idx}.jpg"
 
             img = Image.open(BytesIO(image_file.read()))
       
-            container_client = blob_service_client.get_container_client(container_name)
-
             try:
                 blob_client = container_client.get_blob_client(safe_filename)
                 

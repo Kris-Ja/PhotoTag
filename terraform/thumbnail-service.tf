@@ -18,7 +18,10 @@ resource "azurerm_function_app_flex_consumption" "thumbnail_service" {
   }
 
   app_settings = {
+    ENV_PHOTOS_CONNSTR        = azurerm_storage_account.images.primary_connection_string
+    ENV_PHOTOS_CONTAINER_NAME = azurerm_storage_container.images.name
     ENV_SERVICE_BUS_CONNSTR    = azurerm_servicebus_namespace.image_namespace.default_primary_connection_string
-    ENV_SERVICE_BUS_TOPIC_NAME = azurerm_servicebus_topic.image_topic.name
+    ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME = azurerm_servicebus_topic.new_image.name
+    ENV_SERVICE_BUS_NEW_THUMBNAIL_TOPIC_NAME = azurerm_servicebus_topic.new_thumbnail.name
   }
 }
