@@ -5,15 +5,20 @@ resource "azurerm_servicebus_namespace" "image_namespace" {
   sku                 = "Standard"
 }
 
-resource "azurerm_servicebus_topic" "image_topic" {
-  name         = "image-uploaded-topic"
+resource "azurerm_servicebus_topic" "new_image" {
+  name         = "new-image"
   namespace_id = azurerm_servicebus_namespace.image_namespace.id
 }
 
 resource "azurerm_servicebus_subscription" "thumbnail_subscriber" {
   name               = "thumbnail_subscriber"
-  topic_id           = azurerm_servicebus_topic.image_topic.id
+  topic_id           = azurerm_servicebus_topic.new_image.id
   max_delivery_count = 5
+}
+
+resource "azurerm_servicebus_topic" "new_thumbnail" {
+  name         = "new-thumbnail"
+  namespace_id = azurerm_servicebus_namespace.image_namespace.id
 }
 
 output "servicebus_connection_string" {
@@ -21,7 +26,12 @@ output "servicebus_connection_string" {
   sensitive = true
 }
 
-output "servicebus_topic_name" {
-  value       = azurerm_servicebus_topic.image_topic.name
+output "servicebus_new_image_topic" {
+  value       = azurerm_servicebus_topic.new_image.name
+  description = "Name of topic where python send messages"
+}
+
+output "servicebus_new_thumbnail_topic" {
+  value       = azurerm_servicebus_topic.new_thumbnail.name
   description = "Name of topic where python send messages"
 }
