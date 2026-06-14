@@ -26,3 +26,7 @@ data "azurerm_function_app_host_keys" "images_service" {
   name                = azurerm_function_app_flex_consumption.images_service.name
   resource_group_name = azurerm_function_app_flex_consumption.images_service.resource_group_name
 }
+
+output "images_service_name" {
+  value = azurerm_function_app_flex_consumption.images_service.name
+}
