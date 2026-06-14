@@ -17,3 +17,11 @@ spec:
         image: phototagacrc2cdc266add312cb93b2f9a41334.azurecr.io/app:hello
         ports:
         - containerPort: 8501
+        env:
+        - name: SUBSCRIPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: subscription-key
+              key: subscription-key
+              optional: false
+

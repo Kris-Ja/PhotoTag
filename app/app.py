@@ -1,5 +1,12 @@
 import streamlit as st
 import requests
+import os
+
+
+subscription_key = os.getenv("SUBSCRIPTION_KEY")
+session = requests.Session()
+session.headers.update({'Ocp-Apim-Subscription-Key': subscription_key})
+
 
 st.title("Wgrywanie obrazu (Pillow & Multipart)")
 
@@ -15,9 +22,9 @@ if uploaded_file is not None:
                     "image": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
                 }
                 
-                function_url = "https://images-service.azurewebsites.net/api/upload" 
-                
-                response = requests.post(function_url, files=files)
+                function_url = "https://apim0f54dfec294a4f6e.azure-api.net/" 
+
+                response = session.post(function_url, files=files)
                 
                 if response.status_code == 200:
                     st.success(response.text)
