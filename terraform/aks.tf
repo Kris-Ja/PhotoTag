@@ -41,7 +41,7 @@ resource "kubernetes_namespace_v1" "argocd" {
 resource "kubernetes_secret_v1" "subscription_key" {
   metadata {
     name      = "subscription-key"
-    namespace = "argocd"
+    namespace = "default"
   }
   data = {
     subscription-key = azurerm_api_management_subscription.subscription.primary_key
