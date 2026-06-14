@@ -10,7 +10,7 @@ from azure.storage.blob import BlobServiceClient, ContentSettings
 app = func.FunctionApp()
 
 @app.function_name(name="upload")
-@app.route(route="upload", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
+@app.route(route="upload", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
 def upload_image(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
