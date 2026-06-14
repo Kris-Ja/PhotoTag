@@ -21,3 +21,8 @@ resource "azurerm_function_app_flex_consumption" "images_service" {
     ENV_PHOTOS_CONTAINER_NAME = azurerm_storage_container.images.name
   }
 }
+
+data "azurerm_function_app_host_keys" "images_service" {
+  name                = azurerm_function_app_flex_consumption.images_service.name
+  resource_group_name = azurerm_function_app_flex_consumption.images_service.resource_group_name
+}
