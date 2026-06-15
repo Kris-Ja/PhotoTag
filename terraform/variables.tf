@@ -7,5 +7,5 @@ variable "location" {
 }
 
 variable "location_cognitive" {
-  default = "germanywestcentral"
+  default = "swedencentral"
 }
