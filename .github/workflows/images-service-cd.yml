@@ -9,7 +9,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'images-service0f54dfec294a4f6e'
-  AZURE_FUNCTIONAPP_PROJECT_PATH: 'images-service'
+  AZURE_FUNCTIONAPP_PROJECT_PATH: 'services/images'
   PYTHON_VERSION: '3.13'
 
 jobs:
