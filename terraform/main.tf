@@ -11,9 +11,9 @@ resource "azurerm_resource_group" "phototag" {
   location = var.location
 }
 
-resource "azurerm_resource_group" "phototag_aks" {
-  name     = var.resource_group_aks_name
-  location = var.location_aks
+resource "azurerm_resource_group" "phototag_cognitive" {
+  name     = "${var.resource_group_name}-cognitive"
+  location = var.location_cognitive
 }
 
 provider "kubernetes" {

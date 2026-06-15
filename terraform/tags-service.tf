@@ -6,8 +6,8 @@ resource "azurerm_storage_container" "tags_service" {
 
 resource "azurerm_cognitive_account" "cognitive_acc" {
   name                = "cognitive-acc"
-  location            = azurerm_resource_group.phototag.location
-  resource_group_name = azurerm_resource_group.phototag.name
+  location            = azurerm_resource_group.phototag_cognitive.location
+  resource_group_name = azurerm_resource_group.phototag_cognitive.name
   sku_name            = "S0"
   kind                = "CognitiveServices"
 }

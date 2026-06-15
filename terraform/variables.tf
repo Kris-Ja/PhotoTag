@@ -2,14 +2,10 @@ variable "resource_group_name" {
   default = "phototag-rg"
 }
 
-variable "resource_group_aks_name" {
-  default = "phototag-rg-aks"
-}
-
 variable "location" {
-  default = "germanywestcentral"
+  default = "polandcentral"
 }
 
-variable "location_aks" {
-  default = "polandcentral"
+variable "location_cognitive" {
+  default = "germanywestcentral"
 }
