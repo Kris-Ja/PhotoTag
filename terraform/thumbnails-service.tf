@@ -8,7 +8,7 @@ resource "azurerm_function_app_flex_consumption" "thumbnails_service" {
   name                = lower("thumbnails-service${random_id.random.hex}")
   resource_group_name = azurerm_resource_group.phototag.name
   location            = azurerm_resource_group.phototag.location
-  service_plan_id     = azurerm_service_plan.service_plan.id
+  service_plan_id     = azurerm_service_plan.thumbnails_service_plan.id
 
   storage_container_type        = "blobContainer"
   storage_container_endpoint    = "${azurerm_storage_account.images.primary_blob_endpoint}${azurerm_storage_container.thumbnails_service.name}"
