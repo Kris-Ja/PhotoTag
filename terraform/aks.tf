@@ -1,7 +1,7 @@
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "phototag-aks"
-  location            = azurerm_resource_group.phototag.location
-  resource_group_name = azurerm_resource_group.phototag.name
+  location            = azurerm_resource_group.phototag_aks.location
+  resource_group_name = azurerm_resource_group.phototag_aks.name
   dns_prefix          = "phototag-aks-dns"
 
   default_node_pool {

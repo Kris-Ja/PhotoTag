@@ -1,0 +1,45 @@
+resource "azurerm_cognitive_account" "cognitive_acc" {
+  name                = "images-cognitive"
+  location            = azurerm_resource_group.phototag.location
+  resource_group_name = azurerm_resource_group.phototag.name
+  sku_name            = "S0"
+  kind                = "CognitiveServices"
+}
+
+
+resource "azurerm_service_plan" "congnitive_service_plan" {
+  name                = "cognitive-service-plan"
+  location            = azurerm_resource_group.phototag.location
+  resource_group_name = azurerm_resource_group.phototag.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+
+resource "azurerm_function_app_flex_consumption" "cognitive_tags_app" {
+  name                = lower("tags-service${random_id.random.hex}")
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  service_plan_id     = azurerm_service_plan.congnitive_service_plan.id
+
+  storage_container_type        = "blobContainer"
+  storage_container_endpoint    = "${azurerm_storage_account.images.primary_blob_endpoint}${azurerm_storage_container.images.name}"
+  storage_authentication_type   = "StorageAccountConnectionString"
+  storage_access_key            = azurerm_storage_account.images.primary_access_key
+  runtime_name                  = "python"
+  runtime_version               = "3.13"
+  maximum_instance_count        = 5
+  instance_memory_in_mb         = 512
+  public_network_access_enabled = false
+
+  site_config {
+  }
+
+  app_settings = {
+    ENV_PHOTOS_CONNSTR                   = azurerm_storage_account.images.primary_connection_string
+    ENV_PHOTOS_CONTAINER_NAME            = azurerm_storage_container.images.name
+    ENV_SERVICE_BUS_CONNSTR              = azurerm_servicebus_namespace.image_namespace.default_primary_connection_string
+    ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME = azurerm_servicebus_topic.new_image.name
+    ENV_COGNITIVE_KEY                    = azurerm_cognitive_account.cognitive_acc.primary_access_key
+    ENV_COGNITIVE_URL                    = azurerm_cognitive_account.cognitive_acc.endpoint
+  }
+}

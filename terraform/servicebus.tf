@@ -11,13 +11,24 @@ resource "azurerm_servicebus_topic" "new_image" {
 }
 
 resource "azurerm_servicebus_subscription" "thumbnail_subscriber" {
-  name               = "thumbnail_subscriber"
+  name               = "thumbnail-subscriber"
+  topic_id           = azurerm_servicebus_topic.new_image.id
+  max_delivery_count = 5
+}
+
+resource "azurerm_servicebus_subscription" "tags_subscriber" {
+  name               = "tags-subscriber"
   topic_id           = azurerm_servicebus_topic.new_image.id
   max_delivery_count = 5
 }
 
 resource "azurerm_servicebus_topic" "new_thumbnail" {
   name         = "new-thumbnail"
+  namespace_id = azurerm_servicebus_namespace.image_namespace.id
+}
+
+resource "azurerm_servicebus_topic" "new_tags" {
+  name         = "new-tags"
   namespace_id = azurerm_servicebus_namespace.image_namespace.id
 }
 
@@ -33,5 +44,10 @@ output "servicebus_new_image_topic" {
 
 output "servicebus_new_thumbnail_topic" {
   value       = azurerm_servicebus_topic.new_thumbnail.name
+  description = "Name of topic where python send messages"
+}
+
+output "servicebus_new_tags_topic" {
+  value       = azurerm_servicebus_topic.new_tags.name
   description = "Name of topic where python send messages"
 }
