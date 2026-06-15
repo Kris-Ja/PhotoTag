@@ -25,7 +25,7 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             connection_string = os.environ["ENV_PHOTOS_CONNSTR"]
             container_name = os.environ["ENV_PHOTOS_CONTAINER_NAME"]
             sb_connection_string = os.environ["ENV_SERVICE_BUS_CONNSTR"]
-            meta_topic_name = os.environ["ENV_METADATA_NEW_IMAGE_TOPIC_NAME"]
+            topic_name = os.environ["ENV_NEW_IMAGE_BLOB_TOPIC_NAME"]
 
             try:
                 blob_service_client = BlobServiceClient.from_connection_string(
@@ -67,13 +67,13 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
                 with ServiceBusClient.from_connection_string(
                     sb_connection_string
                 ) as sb_client:
-                    with sb_client.get_topic_sender(topic_name=meta_topic_name) as sender:
+                    with sb_client.get_topic_sender(topic_name=topic_name) as sender:
                         message_payload = {"idx": idx, "original_url": blob_client.url}
                         message = ServiceBusMessage(json.dumps(message_payload))
 
                         sender.send_messages(message)
                         logging.info(
-                            f"Successfully sent UUID {idx} and original url to Service Bus metadata topic."
+                            f"Successfully sent UUID {idx} and original url to Service Bus topic."
                         )
             except Exception as e:
                 logging.error(f"Error while sending message to Service Bus Topic: {e}")

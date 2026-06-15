@@ -15,7 +15,7 @@ app = func.FunctionApp()
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR", 
     topic_name="%ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME%",
-    subscription_name="thumbnail-subscriber" 
+    subscription_name="thumbnails-subscription" 
 )
 def generate_thumbnail(msg: func.ServiceBusMessage):
     idx = msg.get_body().decode("utf-8")

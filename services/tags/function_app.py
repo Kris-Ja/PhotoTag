@@ -17,7 +17,7 @@ app = func.FunctionApp()
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
     topic_name="%ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME%",
-    subscription_name="tags-subscriber",
+    subscription_name="tags-subscription",
 )
 def generate_tags(msg: func.ServiceBusMessage):
     idx = msg.get_body().decode("utf-8")
