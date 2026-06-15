@@ -61,7 +61,7 @@ def generate_tags(msg: func.ServiceBusMessage):
                 BytesIO(image_data), [VisualFeatureTypes.tags]
             )
             for tag in analysis.tags:
-                if tag.confidence > 0.8:
+                if tag.confidence > 0.9:
                     tags.append(tag.name)
         except Exception as e:
             logging.error(f"Error: {e}")
@@ -84,7 +84,7 @@ def generate_tags(msg: func.ServiceBusMessage):
                     )
         except Exception as e:
             logging.error(f"Error while sending message to Service Bus Topic: {e}")
-            return func.HttpResponse("Unable queue tags for metadata", status_code=500)
+            raise e
 
     except Exception as e:
         logging.error(f"Error while processing image {idx}: {e}")
