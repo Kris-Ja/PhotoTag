@@ -11,26 +11,3 @@ resource "azurerm_storage_container" "images" {
   storage_account_id    = azurerm_storage_account.images.id
   container_access_type = "private"
 }
-
-resource "azurerm_storage_table" "metadata" {
-  name                 = "metadata"
-  storage_account_name = azurerm_storage_account.images.name
-}
-
-resource "azurerm_storage_container" "metadata_images" {
-  name                  = "metadata-images"
-  storage_account_id    = azurerm_storage_account.images.id
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "tags_images" {
-  name                  = "tags-images"
-  storage_account_id    = azurerm_storage_account.images.id
-  container_access_type = "private"
-}
-
-resource "azurerm_storage_container" "thumbnail_images" {
-  name                  = "thumbnail-images"
-  storage_account_id    = azurerm_storage_account.images.id
-  container_access_type = "private"
-}

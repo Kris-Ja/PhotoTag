@@ -12,8 +12,8 @@ app = func.FunctionApp()
 @app.service_bus_topic_trigger(
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
-    topic_name="%ENV_SERVICE_BUS_NEW_THUMBNAIL_TOPIC_NAME%",
-    subscription_name="meta-thumbnail-sub",
+    topic_name="%ENV_NEW_THUMBNAIL_TOPIC_NAME%",
+    subscription_name="metadata-thumbnail-sub",
 )
 def new_thumbnail_message(msg: func.ServiceBusMessage):
     message_body = msg.get_body().decode("utf-8")
@@ -65,8 +65,8 @@ def new_thumbnail_message(msg: func.ServiceBusMessage):
 @app.service_bus_topic_trigger(
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
-    topic_name="%ENV_SERVICE_BUS_NEW_TAGS_TOPIC_NAME%",
-    subscription_name="meta-tags-sub",
+    topic_name="%ENV_NEW_TAGS_TOPIC_NAME%",
+    subscription_name="metadata-tags-sub",
 )
 def new_tags_message(msg: func.ServiceBusMessage):
     message_body = msg.get_body().decode("utf-8")
@@ -118,8 +118,8 @@ def new_tags_message(msg: func.ServiceBusMessage):
 @app.service_bus_topic_trigger(
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
-    topic_name="%ENV_METADATA_NEW_IMAGE_TOPIC_NAME%",
-    subscription_name="meta-image-sub",
+    topic_name="%ENV_NEW_IMAGE_BLOB_TOPIC_NAME%",
+    subscription_name="metadata-image-blob-sub",
 )
 def new_image_message(msg: func.ServiceBusMessage):
     message_body = msg.get_body().decode("utf-8")
@@ -133,7 +133,7 @@ def new_image_message(msg: func.ServiceBusMessage):
         try:
             connection_string = os.environ['ENV_PHOTOS_CONNSTR']
             metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
-            sb_topic_name = os.environ["ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME"]
+            sb_topic_name = os.environ["ENV_NEW_IMAGE_TOPIC_NAME"]
             sb_connection_string = os.environ["ENV_SERVICE_BUS_CONNSTR"]
 
             table_service_client = TableServiceClient.from_connection_string(connection_string)
