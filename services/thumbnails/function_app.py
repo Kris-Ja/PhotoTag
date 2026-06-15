@@ -15,7 +15,7 @@ app = func.FunctionApp()
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR", 
     topic_name="%ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME%",
-    subscription_name="thumbnail_subscriber" 
+    subscription_name="thumbnail-subscriber" 
 )
 def generate_thumbnail(msg: func.ServiceBusMessage):
     idx = msg.get_body().decode('utf-8')
@@ -45,7 +45,7 @@ def generate_thumbnail(msg: func.ServiceBusMessage):
         thumbnail_data = BytesIO()
         img.save(thumbnail_data, format='JPEG')
         thumbnail_data.seek(0) 
-        
+
         thumbnail_filename = f"thumbnails/{idx}_thumbnail.jpg"
         thumbnail_blob_client = container_client.get_blob_client(thumbnail_filename)
         
@@ -71,6 +71,7 @@ def generate_thumbnail(msg: func.ServiceBusMessage):
 
                     sender.send_messages(message)
                     logging.info(f"Successfully sent UUID {idx} and blob url to Service Bus topic.")
+                    
         except Exception as e:
             logging.error(f"Error while sending message to Service Bus Topic: {e}")
             return func.HttpResponse("Unable to queue the image for processing", status_code=500)

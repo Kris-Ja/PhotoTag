@@ -11,6 +11,11 @@ resource "azurerm_resource_group" "phototag" {
   location = var.location
 }
 
+resource "azurerm_resource_group" "phototag_aks" {
+  name     = var.resource_group_aks_name
+  location = var.location_aks
+}
+
 provider "kubernetes" {
   host                   = azurerm_kubernetes_cluster.aks.kube_config[0].host
   client_certificate     = base64decode(azurerm_kubernetes_cluster.aks.kube_config[0].client_certificate)
