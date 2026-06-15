@@ -18,7 +18,7 @@ app = func.FunctionApp()
     subscription_name="thumbnail-subscriber" 
 )
 def generate_thumbnail(msg: func.ServiceBusMessage):
-    idx = msg.get_body().decode('utf-8')
+    idx = msg.get_body().decode("utf-8")
     logging.info(f"Receive a message to create a thumbnail: {idx}")
 
     try:

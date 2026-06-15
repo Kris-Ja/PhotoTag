@@ -1,58 +1,182 @@
 import azure.functions as func
 import logging
 import os
+import json
 
-from io import BytesIO
-from PIL import Image
-from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.data.tables import TableServiceClient
+from datetime import datetime
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 app = func.FunctionApp()
+
+@app.service_bus_topic_trigger(
+    arg_name="msg",
+    connection="ENV_SERVICE_BUS_CONNSTR",
+    topic_name="%ENV_SERVICE_BUS_NEW_THUMBNAIL_TOPIC_NAME%",
+    subscription_name="meta-thumbnail-sub",
+)
+def new_thumbnail_message(msg: func.ServiceBusMessage):
+    message_body = msg.get_body().decode("utf-8")
+    payload = json.loads(message_body)
+    
+    image_id = payload["id"]
+    blob_url = payload["blob_url"]
+    
+    logging.info(f"Thumbnail was created message: {image_id}")
+
+    try:
+        try:
+            connection_string = os.environ['ENV_PHOTOS_CONNSTR']
+            metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
+
+            table_service_client = TableServiceClient.from_connection_string(connection_string)
+            table_client = table_service_client.get_table_client(metadata_storage_name)
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return func.HttpResponse(
+                "Error: Unable to connect to Azure Storage", status_code=500
+            )
+        
+        entity = None
+        try:
+            entity = table_client.get_entity(partition_key=image_id, row_key=image_id)
+        except Exception as e:
+            logging.error(f"Error while getting entity: {e}")
+            raise e
+        
+        if entity is None:
+            return
+        else:
+            entity['ThumbnailUrl'] = blob_url
+
+        try:
+            logging.info("Upserting entity")
+            table_client.upsert_entity(entity=entity)
+        except Exception as e:
+            logging.error(f"Error while upserting entity: {e}")
+            raise e   
+    except Exception as e:
+        logging.error(f"Error while saving metadata {image_id}: {e}")
+        raise e
+    
+    return None
 
 
 @app.service_bus_topic_trigger(
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
-    topic_name="%ENV_SERVICE_BUS_TOPIC_NAME%",
-    subscription_name="thumbnail_subscriber",
+    topic_name="%ENV_SERVICE_BUS_NEW_TAGS_TOPIC_NAME%",
+    subscription_name="meta-tags-sub",
 )
-def generate_thumbnail(msg: func.ServiceBusMessage):
-    image_id = msg.get_body().decode("utf-8")
-    logging.info(f"Receive a message to create a thumbnail: {image_id}")
+def new_tags_message(msg: func.ServiceBusMessage):
+    message_body = msg.get_body().decode("utf-8")
+    payload = json.loads(message_body)
+
+    image_id = payload["id"]
+    tags = payload["tags"]
+    
+    logging.info(f"Tags was generated message: {image_id}")
 
     try:
-        connection_string = os.environ["ENV_PHOTOS_CONNSTR"]
-        container_name = os.environ["ENV_PHOTOS_CONTAINER_NAME"]
+        try:
+            connection_string = os.environ['ENV_PHOTOS_CONNSTR']
+            metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
 
-        blob_service_client = BlobServiceClient.from_connection_string(
-            connection_string
-        )
-        container_client = blob_service_client.get_container_client(container_name)
+            table_service_client = TableServiceClient.from_connection_string(connection_string)
+            table_client = table_service_client.get_table_client(metadata_storage_name)
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return func.HttpResponse(
+                "Error: Unable to connect to Azure Storage", status_code=500
+            )
+        
+        entity = None
+        try:
+            entity = table_client.get_entity(partition_key=image_id, row_key=image_id)
+        except Exception as e:
+            logging.error(f"Error while getting entity: {e}")
+            raise e
+        
+        if entity is None:
+            return
+        else:
+            entity['Tags'] = ";".join(tags)
 
-        original_filename = f"{image_id}.jpg"
-        blob_client = container_client.get_blob_client(original_filename)
-
-        logging.info(f"Dowloading file {original_filename} from container...")
-        download_stream = blob_client.download_blob()
-        image_data = download_stream.readall()
-
-        img = Image.open(BytesIO(image_data))
-
-        max_size = (200, 200)
-        img.thumbnail(max_size)
-
-        thumbnail_data = BytesIO()
-        img.save(thumbnail_data, format="JPEG")
-        thumbnail_data.seek(0)
-        thumbnail_filename = f"{image_id}_thumbnail.jpg"
-        thumbnail_blob_client = container_client.get_blob_client(thumbnail_filename)
-
-        content_settings = ContentSettings(content_type="image/jpeg")
-        thumbnail_blob_client.upload_blob(
-            thumbnail_data, overwrite=True, content_settings=content_settings
-        )
-
-        logging.info(f"Success! Saved thumbnail as {thumbnail_filename}.")
-
+        try:
+            logging.info("Upserting entity")
+            table_client.upsert_entity(entity=entity)
+        except Exception as e:
+            logging.error(f"Error while upserting entity: {e}")
+            raise e   
     except Exception as e:
-        logging.error(f"Error while changing image {image_id}: {e}")
+        logging.error(f"Error while saving metadata {image_id}: {e}")
+        raise e
+    
+    return None
+    
+
+@app.service_bus_topic_trigger(
+    arg_name="msg",
+    connection="ENV_SERVICE_BUS_CONNSTR",
+    topic_name="%ENV_METADATA_NEW_IMAGE_TOPIC_NAME%",
+    subscription_name="meta-image-sub",
+)
+def new_image_message(msg: func.ServiceBusMessage):
+    message_body = msg.get_body().decode("utf-8")
+    payload = json.loads(message_body)
+    idx = payload["idx"]
+    original_url = payload["original_url"]
+
+    logging.info(f"New image uploaded: {idx}")
+
+    try:
+        try:
+            connection_string = os.environ['ENV_PHOTOS_CONNSTR']
+            metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
+            sb_topic_name = os.environ["ENV_SERVICE_BUS_NEW_IMAGE_TOPIC_NAME"]
+            sb_connection_string = os.environ["ENV_SERVICE_BUS_CONNSTR"]
+
+            table_service_client = TableServiceClient.from_connection_string(connection_string)
+            table_client = table_service_client.get_table_client(metadata_storage_name)
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return func.HttpResponse(
+                "Error: Unable to connect to Azure Storage", status_code=500
+            )
+        
+        entity = {
+            "PartitionKey": idx,
+            "RowKey": idx,
+            "Timestamp": datetime.now().isoformat(),
+            "OriginalUrl": original_url,
+            "ThumbnailUrl": "",
+            "Tags": ""
+        }
+        
+        try:
+            logging.info("Upserting entity")
+            table_client.upsert_entity(entity=entity)
+        except Exception as e:
+            logging.error(f"Error while upserting entity: {e}")
+            raise e   
+        
+        try:
+            with ServiceBusClient.from_connection_string(
+                sb_connection_string
+            ) as sb_client:
+                with sb_client.get_topic_sender(topic_name=sb_topic_name) as sender:
+                    message = ServiceBusMessage(idx)
+
+                    sender.send_messages(message)
+                    logging.info(
+                        f"Successfully sent UUID {idx} to Service Bus topic."
+                    )
+        except Exception as e:
+            logging.error(f"Error while sending message to Service Bus Topic: {e}")
+            return func.HttpResponse(
+                "Unable to queue the image for processing", status_code=500
+            )
+        return None
+    except Exception as e:
+        logging.error(f"Error while saving metadata {idx}: {e}")
         raise e
