@@ -130,3 +130,42 @@ XML
   depends_on  = [azurerm_api_management_named_value.images_service_name, azurerm_api_management_named_value.images_service_key]
 }
 
+resource "azurerm_api_management_api_operation" "get_images" {
+  api_management_name = azurerm_api_management.apim.name
+  api_name            = azurerm_api_management_api.api.name
+  resource_group_name = azurerm_api_management.apim.resource_group_name
+
+  operation_id = "get-images"
+  display_name = "Get images gallery"
+  method       = "GET"
+  url_template = "/images"
+}
+
+resource "azurerm_api_management_api_operation_policy" "get_images_policy" {
+  api_management_name = azurerm_api_management.apim.name
+  api_name            = azurerm_api_management_api.api.name
+  operation_id        = azurerm_api_management_api_operation.get_images.operation_id
+  resource_group_name = azurerm_api_management.apim.resource_group_name
+
+  xml_content = <<XML
+<policies>
+  <inbound>
+    <base />
+    <set-query-parameter name="code" exists-action="override">
+      <value>{{images-service-key}}</value>
+    </set-query-parameter>
+    <set-backend-service base-url="https://{{images-service-name}}.azurewebsites.net/api/images" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
+XML
+  depends_on  = [azurerm_api_management_named_value.images_service_name, azurerm_api_management_named_value.images_service_key]
+}

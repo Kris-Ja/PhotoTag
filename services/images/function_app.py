@@ -7,8 +7,10 @@ import json
 
 from io import BytesIO
 from PIL import Image
-from azure.storage.blob import BlobServiceClient, ContentSettings
+from azure.storage.blob import BlobServiceClient, ContentSettings, BlobSasPermissions, generate_blob_sas
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.data.tables import TableClient
+from datetime import datetime, timezone, timedelta
 
 app = func.FunctionApp()
 
@@ -90,3 +92,60 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(f"{e}", status_code=500)
     else:
         return func.HttpResponse("Provide an image.", status_code=400)
+
+
+@app.function_name(name="images")
+@app.route(route="images", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
+def download_image(req: func.HttpRequest) -> func.HttpResponse:
+    logging.error("Download images")
+
+    try:
+        connection_string = os.environ["ENV_PHOTOS_CONNSTR"]
+        container_name = os.environ["ENV_PHOTOS_CONTAINER_NAME"]
+
+        conn_dict = dict(kv.split("=", 1) for kv in connection_string.split(";") if kv)
+        account_name = conn_dict.get("AccountName")
+        account_key = conn_dict.get("AccountKey")
+
+        logging.info(f"{account_key} | {account_name}")
+
+        table_client = TableClient.from_connection_string(
+            connection_string, "metadata"
+        )
+        
+        entities = table_client.list_entities()
+        
+        gallery = []
+
+        for entity in entities:
+            idx = entity.get("RowKey")
+            
+            if idx:
+                blob_name = f"thumbnails/{idx}_thumbnail.jpg"
+
+                sas_token = generate_blob_sas(
+                    account_name=account_name,
+                    container_name=container_name,
+                    blob_name=blob_name,
+                    account_key=account_key,
+                    permission=BlobSasPermissions(read=True),
+                    expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+                )
+                
+                secure_url = f"https://{account_name}.blob.core.windows.net/{container_name}/{blob_name}?{sas_token}"
+                
+                gallery.append({
+                    "id": entity.get("RowKey"), 
+                    "url": secure_url,
+                    "tags": entity.get("Tags", ""),
+                    "created_at": entity.get("Timestamp")
+                })
+
+        return func.HttpResponse(
+            body=json.dumps(gallery),
+            mimetype="application/json",
+            status_code=200
+        )
+    except Exception as e:
+        logging.error(f"Error while downloading gallery: {e}")
+        return func.HttpResponse("Error while downloading gallery", status_code=500)

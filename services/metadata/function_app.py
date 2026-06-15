@@ -119,7 +119,7 @@ def new_tags_message(msg: func.ServiceBusMessage):
     arg_name="msg",
     connection="ENV_SERVICE_BUS_CONNSTR",
     topic_name="%ENV_NEW_IMAGE_BLOB_TOPIC_NAME%",
-    subscription_name="meta-image-blob-sub",
+    subscription_name="metadata-image-blob-sub",
 )
 def new_image_message(msg: func.ServiceBusMessage):
     message_body = msg.get_body().decode("utf-8")
