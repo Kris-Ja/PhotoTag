@@ -116,3 +116,20 @@ resource "azurerm_api_management_api_operation" "get_images" {
   method       = "GET"
   url_template = "/images"
 }
+
+resource "azurerm_api_management_api_operation" "get_image" {
+  api_management_name = azurerm_api_management.apim.name
+  api_name            = azurerm_api_management_api.api.name
+  resource_group_name = azurerm_api_management.apim.resource_group_name
+
+  operation_id = "get-image"
+  display_name = "Get image"
+  method       = "GET"
+  url_template = "/images/{id}"
+
+  template_parameter {
+    name     = "id"
+    type     = "string"
+    required = true
+  }
+}
