@@ -47,3 +47,13 @@ resource "kubernetes_secret_v1" "subscription_key" {
     subscription-key = azurerm_api_management_subscription.subscription.primary_key
   }
 }
+
+resource "kubernetes_secret_v1" "api_url" {
+  metadata {
+    name      = "api-url"
+    namespace = "default"
+  }
+  data = {
+    api-url = azurerm_api_management.apim.gateway_url
+  }
+}

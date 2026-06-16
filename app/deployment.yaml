@@ -24,4 +24,10 @@ spec:
               name: subscription-key
               key: subscription-key
               optional: false
+        - name: API_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-url
+              key: api-url
+              optional: false
 
