@@ -4,6 +4,14 @@ resource "azurerm_storage_container" "tags_service" {
   container_access_type = "private"
 }
 
+resource "azurerm_service_plan" "cognitive_service_plan" {
+  name                = "cognitive-service-plan"
+  location            = azurerm_resource_group.phototag.location
+  resource_group_name = azurerm_resource_group.phototag.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+
 resource "azurerm_cognitive_account" "cognitive_acc" {
   name                = "cognitive-acc"
   location            = azurerm_resource_group.phototag_cognitive.location
@@ -12,11 +20,11 @@ resource "azurerm_cognitive_account" "cognitive_acc" {
   kind                = "CognitiveServices"
 }
 
-resource "azurerm_function_app_flex_consumption" "cognitive_tags_app" {
+resource "azurerm_function_app_flex_consumption" "tags_service" {
   name                = lower("tags-service${random_id.random.hex}")
   resource_group_name = azurerm_resource_group.phototag.name
   location            = azurerm_resource_group.phototag.location
-  service_plan_id     = azurerm_service_plan.congnitive_service_plan.id
+  service_plan_id     = azurerm_service_plan.cognitive_service_plan.id
 
   storage_container_type        = "blobContainer"
   storage_container_endpoint    = "${azurerm_storage_account.images.primary_blob_endpoint}${azurerm_storage_container.tags_service.name}"
@@ -46,4 +54,8 @@ resource "azurerm_servicebus_subscription" "tags_sub" {
   name               = "tags-sub"
   topic_id           = azurerm_servicebus_topic.new_image.id
   max_delivery_count = 5
+}
+
+output "tags_service_name" {
+  value = azurerm_function_app_flex_consumption.tags_service.name
 }
