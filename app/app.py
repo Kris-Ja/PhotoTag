@@ -4,6 +4,7 @@ import os
 
 
 subscription_key = os.getenv("SUBSCRIPTION_KEY")
+api_url = os.getenv("API_URL")
 session = requests.Session()
 session.headers.update({'Ocp-Apim-Subscription-Key': subscription_key})
 
@@ -21,10 +22,8 @@ if uploaded_file is not None:
                 files = {
                     "image": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)
                 }
-                
-                function_url = "https://apim0f54dfec294a4f6e.azure-api.net/" 
-
-                response = session.post(function_url, files=files)
+               
+                response = session.post(api_url + "/images", files=files)
                 
                 if response.status_code == 200:
                     st.success(response.text)
