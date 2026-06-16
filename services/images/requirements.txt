@@ -2,5 +2,4 @@ azure-storage-blob
 azure-functions
 azure-data-tables
 azure-servicebus
-azure-cognitiveservices-vision-computervision
 Pillow

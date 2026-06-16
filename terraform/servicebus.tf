@@ -5,11 +5,6 @@ resource "azurerm_servicebus_namespace" "servicebus" {
   sku                 = "Standard"
 }
 
-resource "azurerm_servicebus_topic" "new_image_blob" {
-  name         = "new-image-blob"
-  namespace_id = azurerm_servicebus_namespace.servicebus.id
-}
-
 resource "azurerm_servicebus_topic" "new_image" {
   name         = "new-image"
   namespace_id = azurerm_servicebus_namespace.servicebus.id
@@ -28,11 +23,6 @@ resource "azurerm_servicebus_topic" "new_tags" {
 output "servicebus_connection_string" {
   value     = azurerm_servicebus_namespace.servicebus.default_primary_connection_string
   sensitive = true
-}
-
-output "servicebus_new_image_blob_topic" {
-  value       = azurerm_servicebus_topic.new_image_blob.name
-  description = "Name of topic where python send messages"
 }
 
 output "servicebus_new_image_topic" {
