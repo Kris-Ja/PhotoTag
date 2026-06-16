@@ -144,7 +144,7 @@ def get_image(req: func.HttpRequest) -> func.HttpResponse:
         )
     except Exception as e:
         logging.error(f"Error while getting data: {e}")
-        return func.HttpResponse("Error while getting data", status_code=500)
+        return func.HttpResponse(f"Error while getting data {e}", status_code=500)
 
 @app.function_name(name="upload_image")
 @app.route(route="images", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
@@ -237,6 +237,63 @@ def upload_image(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(f"{e}", status_code=500)
     else:
         return func.HttpResponse("Provide an image.", status_code=400)
+
+@app.function_name(name="delete_image")
+@app.route(route="images/{id}", auth_level=func.AuthLevel.FUNCTION, methods=["DELETE"])
+def delete_image(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        idx = req.route_params.get("id")
+        if not idx:
+            return func.HttpResponse(
+                "No image id in route params",
+                status_code=400
+            )
+        connection_string = os.environ["ENV_PHOTOS_CONNSTR"]
+        metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
+        container_name = os.environ["ENV_PHOTOS_CONTAINER_NAME"]
+
+        conn_dict = dict(kv.split("=", 1) for kv in connection_string.split(";") if kv)
+        account_name = conn_dict.get("AccountName")
+        account_key = conn_dict.get("AccountKey")
+
+        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        table_service_client = TableServiceClient.from_connection_string(connection_string)
+        table_client = table_service_client.get_table_client(metadata_storage_name)
+        
+        try:
+            entity = table_client.get_entity(idx, idx)
+            if not entity:
+                return func.HttpResponse(
+                    f"Image with id {idx} not found",
+                    status_code=400
+                )
+        except Exception as e:
+            return func.HttpResponse(
+                f"Image with id {idx} not found",
+                status_code=400
+            )
+        
+        thumbnail_path = entity.get("ThumbnailPath")
+        if thumbnail_path:
+            blob_name = thumbnail_path
+            blob_client = blob_service_client.get_blob_client(container_name, blob_name)
+            blob_client.delete_blob(delete_snapshots="include")
+
+        image_path = entity.get("ImagePath")
+        if image_path:
+            blob_name = image_path
+            blob_client = blob_service_client.get_blob_client(container_name, blob_name)
+            blob_client.delete_blob(delete_snapshots="include")
+
+        table_client.delete_entity(idx, idx)
+
+        return func.HttpResponse(
+            "Image deleted",
+            status_code=200
+        )
+    except Exception as e:
+        logging.error(f"Error while deleting data: {e}")
+        return func.HttpResponse("Error while deleting data", status_code=500)
 
 @app.service_bus_topic_trigger(
     arg_name="msg",
