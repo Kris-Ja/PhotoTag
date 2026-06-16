@@ -10,8 +10,12 @@ if "last_clicked" not in st.session_state:
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
+if "gallery_key" not in st.session_state:
+    st.session_state.gallery_key = 0
+
 subscription_key = os.getenv("SUBSCRIPTION_KEY")
 api_url = os.getenv("API_URL")
+
 session = requests.Session()
 session.headers.update({"Ocp-Apim-Subscription-Key": subscription_key})
 
@@ -51,6 +55,24 @@ def show_image_details(image_id):
                     st.markdown("<p style='text-align: center; color: gray;'>Brak przypisanych tagów.</p>", unsafe_allow_html=True)
             else:
                 st.error(f"Nie udało się pobrać szczegółów (Kod: {resp.status_code}).")
+
+
+            _, btn_col, _ = st.columns([1, 1, 1])
+            with btn_col:
+                if st.button("Usuń to zdjęcie", use_container_width=True, type="primary"):
+                    with st.spinner("Usuwanie..."):
+                        try:
+                            del_resp = session.delete(f"{api_url}/images/{image_id}")
+                            
+                            if del_resp.status_code in [200, 204, 202]: 
+                                fetch_gallery_images.clear() 
+                                st.session_state.last_clicked = -1    
+                                st.session_state.gallery_key += 1                      
+                                st.rerun() 
+                            else:
+                                st.error(f"Nie udało się usunąć zdjęcia (Kod: {del_resp.status_code})")
+                        except Exception as e:
+                            st.error(f"Błąd podczas usuwania: {e}")
         except Exception as e:
             st.error(f"Błąd połączenia: {e}")
 
@@ -127,7 +149,7 @@ with tab_gallery:
                         "object-fit": "cover",
                         "height": "200px",
                     },
-                    key="image_gallery"
+                    key=f"image_gallery_{st.session_state.gallery_key}"
                 )
                 
                 if (clicked_index > -1
