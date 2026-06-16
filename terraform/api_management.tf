@@ -133,3 +133,20 @@ resource "azurerm_api_management_api_operation" "get_image" {
     required = true
   }
 }
+
+resource "azurerm_api_management_api_operation" "delete_image" {
+  api_management_name = azurerm_api_management.apim.name
+  api_name            = azurerm_api_management_api.api.name
+  resource_group_name = azurerm_api_management.apim.resource_group_name
+
+  operation_id = "delete-image"
+  display_name = "Delete image"
+  method       = "DELETE"
+  url_template = "/images/{id}"
+
+  template_parameter {
+    name     = "id"
+    type     = "string"
+    required = true
+  }
+}
