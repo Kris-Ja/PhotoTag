@@ -4,6 +4,14 @@ resource "azurerm_storage_container" "thumbnails_service" {
   container_access_type = "private"
 }
 
+resource "azurerm_service_plan" "thumbnails_service_plan" {
+  name                = "thumbnails-service-plan"
+  location            = azurerm_resource_group.phototag.location
+  resource_group_name = azurerm_resource_group.phototag.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+
 resource "azurerm_function_app_flex_consumption" "thumbnails_service" {
   name                = lower("thumbnails-service${random_id.random.hex}")
   resource_group_name = azurerm_resource_group.phototag.name
@@ -36,4 +44,8 @@ resource "azurerm_servicebus_subscription" "thumbnails_sub" {
   name               = "thumbnails-sub"
   topic_id           = azurerm_servicebus_topic.new_image.id
   max_delivery_count = 5
+}
+
+output "thumbnails_service_name" {
+  value = azurerm_function_app_flex_consumption.thumbnails_service.name
 }

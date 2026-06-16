@@ -4,11 +4,19 @@ resource "azurerm_storage_container" "images_service" {
   container_access_type = "private"
 }
 
+resource "azurerm_service_plan" "images_service_plan" {
+  name                = "images-service-plan"
+  location            = azurerm_resource_group.phototag.location
+  resource_group_name = azurerm_resource_group.phototag.name
+  os_type             = "Linux"
+  sku_name            = "FC1"
+}
+
 resource "azurerm_function_app_flex_consumption" "images_service" {
   name                = lower("images-service${random_id.random.hex}")
   resource_group_name = azurerm_resource_group.phototag.name
   location            = azurerm_resource_group.phototag.location
-  service_plan_id     = azurerm_service_plan.service_plan.id
+  service_plan_id     = azurerm_service_plan.images_service_plan.id
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.images.primary_blob_endpoint}${azurerm_storage_container.images_service.name}"
