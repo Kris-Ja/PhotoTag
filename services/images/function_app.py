@@ -79,6 +79,73 @@ def get_images(req: func.HttpRequest) -> func.HttpResponse:
         logging.error(f"Error while getting data: {e}")
         return func.HttpResponse("Error while getting data", status_code=500)
 
+@app.function_name(name="get_image")
+@app.route(route="images/{id}", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
+def get_image(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        idx = req.route_params.get("id")
+        if not idx:
+            return func.HttpResponse(
+                "No image id in route params",
+                status_code=400
+            )
+        connection_string = os.environ["ENV_PHOTOS_CONNSTR"]
+        metadata_storage_name = os.environ['ENV_METADATA_STORAGE_NAME']
+        container_name = os.environ["ENV_PHOTOS_CONTAINER_NAME"]
+
+        conn_dict = dict(kv.split("=", 1) for kv in connection_string.split(";") if kv)
+        account_name = conn_dict.get("AccountName")
+        account_key = conn_dict.get("AccountKey")
+
+        table_service_client = TableServiceClient.from_connection_string(connection_string)
+        table_client = table_service_client.get_table_client(metadata_storage_name)
+        
+        try:
+            entity = table_client.get_entity(idx, idx)
+            if not entity:
+                return func.HttpResponse(
+                    f"Image with id {idx} not found",
+                    status_code=400
+                )
+        except Exception as e:
+            return func.HttpResponse(
+                f"Image with id {idx} not found",
+                status_code=400
+            )
+        
+        url = None
+        tags = []
+        timestamp = None
+        
+        timestamp_val = entity.get("Timestamp")
+        if timestamp_val:
+            timestamp = timestamp_val
+        
+        image_path = entity.get("ImagePath")
+        if image_path:
+            blob_name = image_path
+            url = generate_sas_url(container_name, blob_name, account_name, account_key) 
+
+        tags_string = entity.get("Tags")
+        if tags_string:
+            tags = [s.strip() for s in tags_string.split(",") if s.strip()]
+
+        result = {
+            "id": idx, 
+            "url": url,
+            "tags": tags,
+            "created_at": timestamp
+        }
+
+        return func.HttpResponse(
+            body=json.dumps(result),
+            mimetype="application/json",
+            status_code=200
+        )
+    except Exception as e:
+        logging.error(f"Error while getting data: {e}")
+        return func.HttpResponse("Error while getting data", status_code=500)
+
 @app.function_name(name="upload_image")
 @app.route(route="images", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
 def upload_image(req: func.HttpRequest) -> func.HttpResponse:
