@@ -11,6 +11,7 @@ if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 
 subscription_key = os.getenv("SUBSCRIPTION_KEY")
+api_url = os.getenv("API_URL")
 session = requests.Session()
 session.headers.update({"Ocp-Apim-Subscription-Key": subscription_key})
 
