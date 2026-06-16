@@ -23,11 +23,26 @@ resource "azurerm_function_app_flex_consumption" "images_service" {
   }
 
   app_settings = {
-    ENV_PHOTOS_CONNSTR            = azurerm_storage_account.images.primary_connection_string
-    ENV_PHOTOS_CONTAINER_NAME     = azurerm_storage_container.images.name
-    ENV_SERVICE_BUS_CONNSTR       = azurerm_servicebus_namespace.servicebus.default_primary_connection_string
-    ENV_NEW_IMAGE_BLOB_TOPIC_NAME = azurerm_servicebus_topic.new_image_blob.name
+    ENV_PHOTOS_CONNSTR           = azurerm_storage_account.images.primary_connection_string
+    ENV_PHOTOS_CONTAINER_NAME    = azurerm_storage_container.images.name
+    ENV_METADATA_STORAGE_NAME    = azurerm_storage_table.metadata.name
+    ENV_SERVICE_BUS_CONNSTR      = azurerm_servicebus_namespace.servicebus.default_primary_connection_string
+    ENV_NEW_IMAGE_TOPIC_NAME     = azurerm_servicebus_topic.new_image.name
+    ENV_NEW_THUMBNAIL_TOPIC_NAME = azurerm_servicebus_topic.new_thumbnail.name
+    ENV_NEW_TAGS_TOPIC_NAME      = azurerm_servicebus_topic.new_tags.name
   }
+}
+
+resource "azurerm_servicebus_subscription" "new_tags_sub" {
+  name               = "new-tags-sub"
+  topic_id           = azurerm_servicebus_topic.new_tags.id
+  max_delivery_count = 5
+}
+
+resource "azurerm_servicebus_subscription" "new_thumbnail_sub" {
+  name               = "new-thumbnail-sub"
+  topic_id           = azurerm_servicebus_topic.new_thumbnail.id
+  max_delivery_count = 5
 }
 
 data "azurerm_function_app_host_keys" "images_service" {

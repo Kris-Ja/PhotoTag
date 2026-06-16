@@ -64,13 +64,13 @@ def generate_thumbnail(msg: func.ServiceBusMessage):
 
                     message_payload = {
                         "id": idx,
-                        "blob_url": thumbnail_blob_client.url
+                        "blob_name": thumbnail_filename
                     }
 
                     message = ServiceBusMessage(json.dumps(message_payload))
 
                     sender.send_messages(message)
-                    logging.info(f"Successfully sent UUID {idx} and blob url to Service Bus topic.")
+                    logging.info(f"Successfully sent UUID {idx} and blob name to Service Bus topic.")
                     
         except Exception as e:
             logging.error(f"Error while sending message to Service Bus Topic: {e}")
