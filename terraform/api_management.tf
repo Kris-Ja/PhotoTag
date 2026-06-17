@@ -62,7 +62,7 @@ resource "azurerm_api_management_api_policy" "api_policy" {
 <policies>
   <inbound>
     <base />
-    <rate-limit calls="10" renewal-period="30" />
+    <rate-limit calls="30" renewal-period="10" />
     <set-query-parameter name="code" exists-action="override">
       <value>{{images-service-key}}</value>
     </set-query-parameter>
