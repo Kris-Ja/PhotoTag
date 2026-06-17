@@ -20,6 +20,11 @@ output "subscription_key" {
   sensitive = true
 }
 
+output "api_url" {
+  value     = azurerm_api_management.apim.gateway_url
+  sensitive = true
+}
+
 resource "azurerm_api_management_api" "api" {
   name                = "api"
   api_management_name = azurerm_api_management.apim.name
