@@ -1,5 +1,8 @@
 # PhotoTag - Projektowanie Systemów Rozproszonych
 
+## Diagram
+<img src="./Diagram.svg">
+
 ## How to run the project
 
 ### Login to Azure using Azure CLI:
@@ -58,9 +61,10 @@ kubectl port-forward deployment/app-deployment 8501:8501
 ```
 
 ### Option 2 - run locally:
-#### Get the subscription key from terraform outputs:
+#### Get the subscription key and API url from terraform output:
 ```bash
 export SUBSCRIPTION_KEY=$(terraform output -raw subscription_key)
+export API_URL=$(terraform output -raw api_url)
 ```
 
 #### Run the app:
