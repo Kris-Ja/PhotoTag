@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: phototagacrc2cdc266add312cb93b2f9a41334.azurecr.io/app:13dbb2b8736380e01f2c177d2daefe0cd6821f2a
+        image: phototagacrc2cdc266add312cb93b2f9a41334.azurecr.io/app:e130b63c3f88f38e1e48d2af875c15548934160f
         ports:
         - containerPort: 8501
         env:
